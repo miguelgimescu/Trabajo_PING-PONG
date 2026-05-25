@@ -152,11 +152,8 @@ La revisión sistemática del proyecto identifica Random Forest como el algoritm
 
 ## Gráficas representativas
 
-Las gráficas más relevantes del análisis están en la carpeta `graficas/`:
+Las gráficas más relevantes del análisis están en la carpeta `capturas_edge/`:
 
-- `feature_explorer.png` — clusters por clase en el espacio de features (separación visual entre clases)
-- `confusion_matrix_final.png` — matriz de confusión del modelo óptimo (Prueba 8)
-- `accuracy_vs_arquitectura.png` — comparativa de accuracy entre todas las pruebas
-- `loss_vs_arquitectura.png` — comparativa de loss entre todas las pruebas
+Tambien esta la base de datos del entrenamiento subida a la carpeta.
 
-El documento LaTeX completo con todas las matrices de confusión y gráficas de cada prueba está disponible en `bitacora_modelos.pdf`.
+El documento LaTeX completo con todas las matrices de confusión y gráficas de cada prueba está disponible en `analisis_Neural_Network_settings.pdf`.
