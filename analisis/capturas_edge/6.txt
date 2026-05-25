@@ -1,0 +1,30 @@
+Neural Network settings
+Training settings
+Number of training cycles 
+100
+Use learned optimizer 
+ 
+Learning rate 
+0.0005
+Training processor 
+
+CPU
+Advanced training settings
+Validation set size 
+20
+%
+Split train/validation set on metadata key 
+Batch size 
+32
+Auto-weight classes 
+ 
+Profile int8 model 
+ 
+Neural network architecture
+ 
+Input layer (117 features)
+Dense layer (32 neurons)
+Dense layer (20 neurons)
+Dense layer (10 neurons)
+Add an extra layer
+Output layer (5 classes)
