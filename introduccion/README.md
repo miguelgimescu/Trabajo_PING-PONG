@@ -4,7 +4,7 @@
 
 Este proyecto implementa un **sistema de clasificación en tiempo real de golpes de ping pong** utilizando un Arduino Nano 33 BLE Sense equipado con sensores de movimiento (IMU de 6 ejes). El sistema combina captura de datos, análisis con aprendizaje automático y ejecución embebida de un modelo neuronal en hardware de bajo consumo.
 
-**Clases detectadas:** Saque, Derecha, Revés, Cortado y Mate.
+**Clases detectadas:** Saque, Derecha, Revés, Cortado y Mate. 
 
 ---
 
