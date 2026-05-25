@@ -50,27 +50,19 @@ Este directorio contiene los scripts iniciales desarrollados para la captura del
 
 ---
 
-## ⚠️ Nota de implementación y evolución del proyecto
+## ⚙️ Evolución de la Captura del Dataset
 
-Aunque este sistema de extracción propio funciona correctamente, **se descartó para la captura final del dataset en favor de una conexión directa por cable usando el Edge Impulse Data Forwarder** por dos motivos técnicos:
+Aunque este sistema de extracción propio funciona correctamente, durante el desarrollo del proyecto se comprobó que la construcción de un dataset robusto es un proceso iterativo complejo que consume varias horas de pruebas, generación de datos y descarte de muestras erróneas. Por este motivo pragmático, para la captura final se optó por utilizar la conexión directa por cable mediante **Edge Impulse Data Forwarder**, basándonos en los siguientes criterios de eficiencia:
 
-**1. Jitter en la frecuencia de muestreo**
+**1. Feedback Visual Inmediato (Control de Calidad)**
 
-La latencia del sistema operativo al leer el puerto serie mediante Python introduce pequeñas fluctuaciones temporales (*jitter*). El bloque de procesado Spectral Analysis de Edge Impulse extrae características frecuenciales (FFT, potencia espectral) que requieren que las muestras estén alineadas exactamente a 100Hz. Con Python recibiendo por serie, las muestras llegaban con separaciones de entre 9ms y 12ms en vez de los 10ms exactos requeridos, lo que degrada la calidad de las features y por tanto la precisión del modelo.
+Capturar datos a ciegas en un CSV mediante Python obliga a revisar las gráficas a posteriori para detectar golpes anómalos o mal ejecutados. La herramienta nativa de Edge Impulse permite visualizar la onda en la pantalla del ordenador en tiempo real, lo que fue vital para descartar tomas defectuosas al instante durante las largas sesiones de captura.
 
-**2. Fricción en el etiquetado manual**
+**2. Gestión del Etiquetado (Labeling)**
 
-Capturar las ~850 ventanas de entrenamiento necesarias (5 clases × ~170 ventanas) con este método implicaba:
-- Ejecutar el script una vez por cada tanda de golpes
-- Renombrar cada CSV manualmente (`derecha_01.csv`, `derecha_02.csv`...)
-- Subirlos uno a uno a Edge Impulse
-- Recortar manualmente cada golpe dentro del CSV
+El script de Python requiere modificar el código fuente manualmente para cambiar el nombre del archivo de salida en cada nueva tanda de golpes (por ejemplo, cambiar de `derecha_01.csv` a `reves_01.csv`). Edge Impulse centralizó este flujo, permitiendo grabar ráfagas continuas de movimiento y etiquetar los impactos de forma mucho más ágil directamente en la interfaz web, ahorrando un tiempo valiosísimo.
 
-Usando el **Edge Impulse Data Forwarder con cable USB largo**, el flujo de trabajo fue radicalmente más eficiente: grabar 30 segundos de golpes continuos, etiquetar la clase en la web, y dejar que Edge Impulse segmentara automáticamente las ventanas. El tiempo de recogida de datos pasó de varias horas a aproximadamente 45 minutos.
-
-Por tanto, el código adjunto sirve como prueba de concepto de la extracción raw y permite reproducir la captura de datos de forma autónoma sin depender de la plataforma Edge Impulse, pero el dataset final del proyecto fue generado con el método nativo para maximizar la fidelidad de las señales y la eficiencia del proceso.
-
----
+Por tanto, el código adjunto sirve como prueba de concepto de la extracción raw y permite reproducir la captura de datos de forma autónoma sin depender de plataformas de terceros, pero el dataset final del proyecto fue generado con el método nativo para maximizar la eficiencia en el proceso de filtrado y etiquetado manual.
 
 ## Dependencias Python
 
