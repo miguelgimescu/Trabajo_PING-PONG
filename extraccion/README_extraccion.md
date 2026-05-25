@@ -30,7 +30,7 @@ Este directorio contiene los scripts iniciales desarrollados para la captura del
 |---|---|
 | `extraccion_raw.ino` | Firmware Arduino: muestrea IMU y envía CSV por puerto serie |
 | `captura_dataset.py` | Script Python: recibe datos serie y los guarda en CSV |
-| `datos_crudos/` | Carpeta con los CSV capturados con este método |
+| `ping-pong-export (4).zip/` | Carpeta con los CSV capturados con este método |
 
 ---
 
@@ -52,7 +52,7 @@ Este directorio contiene los scripts iniciales desarrollados para la captura del
 
 ## ⚙️ Evolución de la Captura del Dataset
 
-Aunque este sistema de extracción propio funciona correctamente, durante el desarrollo del proyecto se comprobó que la construcción de un dataset robusto es un proceso iterativo complejo que consume varias horas de pruebas, generación de datos y descarte de muestras erróneas. Por este motivo pragmático, para la captura final se optó por utilizar la conexión directa por cable mediante **Edge Impulse Data Forwarder**, basándonos en los siguientes criterios de eficiencia:
+Aunque este sistema de extracción propio funciona correctamente, durante el desarrollo del proyecto se comprobó que la construcción de un dataset robusto es un proceso iterativo complejo que consume varias horas de pruebas, generación de datos y descarte de muestras erróneas. Por este motivo pragmático, para la captura final se optó por utilizar la conexión directa mediante **Edge Impulse Data Forwarder**, empleando un cable USB lo suficientemente largo para poder mover la pala conectada al ordenador sin ningún problema. La elección se basó en los siguientes criterios de eficiencia:
 
 **1. Feedback Visual Inmediato (Control de Calidad)**
 
