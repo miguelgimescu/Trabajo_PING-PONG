@@ -2,22 +2,23 @@
 
 ## Descripción
 
-Este directorio contiene los scripts iniciales desarrollados para la captura del dataset de movimientos de ping pong. El sistema consta de un firmware en Arduino que muestrea la IMU a 100Hz y un script en Python que recoge los datos vía UART y los almacena en formato `.csv` para su posterior procesamiento.
+Este directorio contiene los scripts desarrollados para la captura del dataset de movimientos de ping pong. Para asegurar la máxima movilidad y no alterar la técnica natural del jugador, el sistema se diseñó con una arquitectura inalámbrica para la transmisión de datos. Físicamente, el Arduino Nano 33 BLE Sense se fijó a la pala y se alimentó mediante un cable USB conectado a una batería externa (powerbank) guardada en el bolsillo del jugador.
+
+Mientras el jugador realizaba los golpes con total libertad, el firmware de la placa muestreaba la IMU a 100Hz y transmitía la telemetría vía Bluetooth Low Energy (BLE). Simultáneamente, un script de Python ejecutándose en un PC cercano actuaba como cliente, recibiendo los datos por el aire y estructurándolos en archivos `.csv` listos para el entrenamiento.
 
 ---
 
-## Diagrama de funcionamiento
+---
 
-```
-┌─────────────────┐     UART (115200 baud)      ┌─────────────────┐
-│ Arduino Nano 33 │ ──────────────────────────► │ PC (Python)     │
-│                 │                             │                 │
-│ Muestreo IMU    │    "1250,0.5,1.2,9.8,..."   │ pyserial        │
-│ a 100Hz (10ms)  │ ──────────────────────────► │ Guarda en .csv  │
-└─────────────────┘                             └─────────────────┘
-        ▲                                               │
-        │ Captura de movimiento                         ▼
-   Pala de Ping Pong                          golpe_derecha_01.csv
+## Diagrama de Arquitectura de Extracción
+
+```text
+┌────────────────────────┐         Bluetooth LE (BLE)        ┌────────────────────────┐
+│ PALA (Batería Externa) │ ────────────────────────────────► │ PC (Python + Bleak)    │
+│                        │       Notificaciones BLE          │                        │
+│ Arduino Nano 33 BLE    │       "0.5,-1.2,9.8,..."          │ Recepción asíncrona    │
+│ Muestreo IMU 100Hz     │ ────────────────────────────────► │ Generación de .csv     │
+└────────────────────────┘                                   └────────────────────────┘
 ```
 
 **Ejes capturados:** accX, accY, accZ, gyrX, gyrY, gyrZ a 100Hz
