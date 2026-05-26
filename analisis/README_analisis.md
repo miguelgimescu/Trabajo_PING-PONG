@@ -8,7 +8,7 @@ Esta sección documenta el proceso de análisis de datos y entrenamiento del mod
 
 ## Datos recogidos
 
-Los datos se capturaron directamente desde Edge Impulse con el Arduino Nano 33 BLE Sense conectado por USB, usando el Data Forwarder oficial de Edge Impulse.
+Los datos se capturaron directamente desde Edge Impulse con el Arduino Nano 33 BLE Sense conectado por USB, usando el Data Forwarder oficial de Edge Impulse, grbando 0 segundos de golpes y descartando las grabaciones con pocos y las que quedaron se les hizo poteriormente un recorte a los golpes en ventanas de 1 segundo.
 
 | Parámetro | Valor |
 |---|---|
@@ -21,7 +21,7 @@ Los datos se capturaron directamente desde Edge Impulse con el Arduino Nano 33 B
 | Clases | cortado, derecha, mate, revés, saque |
 | Split train/validación | 80% / 20% |
 
-Los datos crudos exportados desde Edge Impulse están disponibles en la carpeta `datos_crudos/`.
+Los datos crudos exportados desde Edge Impulse están disponibles en la carpeta `ping-pong-export (4).zip/`.
 
 ---
 
