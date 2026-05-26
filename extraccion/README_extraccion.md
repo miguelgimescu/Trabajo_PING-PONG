@@ -2,9 +2,9 @@
 
 ## Descripción
 
-Dado que el proyecto exige un dispositivo completamente autónomo e inalámbrico (alimentado por batería y acoplado a la pala), el uso de cables USB para la toma de muestras estaba descartado, ya que alteraría la ergonomía y la cinemática real del golpe.
+Este directorio contiene los scripts desarrollados para la captura del dataset de movimientos de ping pong. Para asegurar la máxima movilidad y no alterar la técnica natural del jugador, el sistema se diseñó con una arquitectura inalámbrica para la transmisión de datos. Físicamente, el Arduino Nano 33 BLE Sense se fijó a la pala y se alimentó mediante un cable USB conectado a una batería externa (powerbank) guardada en el bolsillo del jugador.
 
-Para construir el dataset de entrenamiento, se desarrolló una arquitectura de extracción **100% inalámbrica** mediante Bluetooth Low Energy (BLE) y Python.
+Mientras el jugador realizaba los golpes con total libertad, el firmware de la placa muestreaba la IMU a 100Hz y transmitía la telemetría vía Bluetooth Low Energy (BLE). Simultáneamente, un script de Python ejecutándose en un PC cercano actuaba como cliente, recibiendo los datos por el aire y estructurándolos en archivos `.csv` listos para el entrenamiento.
 
 ---
 
