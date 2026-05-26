@@ -1,27 +1,28 @@
-# Extracción de Datos — Clasificador de Golpes de Ping Pong
+# Extracción de Datos — Sistema Inalámbrico BLE
 
 ## Descripción
 
-Este directorio contiene los scripts desarrollados para la captura del dataset de movimientos de ping pong. Para asegurar la máxima movilidad y no alterar la técnica natural del jugador, el sistema se diseñó con una arquitectura inalámbrica para la transmisión de datos. Físicamente, el Arduino Nano 33 BLE Sense se fijó a la pala y se alimentó mediante un cable USB conectado a una batería externa (powerbank) guardada en el bolsillo del jugador.
+Dado que el proyecto exige un dispositivo completamente autónomo e inalámbrico (alimentado por batería y acoplado a la pala), el uso de cables USB para la toma de muestras estaba descartado, ya que alteraría la ergonomía y la cinemática real del golpe.
 
-Mientras el jugador realizaba los golpes con total libertad, el firmware de la placa muestreaba la IMU a 100Hz y transmitía la telemetría vía Bluetooth Low Energy (BLE). Simultáneamente, un script de Python ejecutándose en un PC cercano actuaba como cliente, recibiendo los datos por el aire y estructurándolos en archivos `.csv` listos para el entrenamiento.
-
----
+Para construir el dataset de entrenamiento, se desarrolló una arquitectura de extracción **100% inalámbrica** mediante Bluetooth Low Energy (BLE) y Python.
 
 ---
 
-## Diagrama de Arquitectura de Extracción
+## Diagrama de funcionamiento
 
-```text
-┌────────────────────────┐         Bluetooth LE (BLE)        ┌────────────────────────┐
-│ PALA (Batería Externa) │ ────────────────────────────────► │ PC (Python + Bleak)    │
-│                        │       Notificaciones BLE          │                        │
-│ Arduino Nano 33 BLE    │       "0.5,-1.2,9.8,..."          │ Recepción asíncrona    │
-│ Muestreo IMU 100Hz     │ ────────────────────────────────► │ Generación de .csv     │
-└────────────────────────┘                                   └────────────────────────┘
 ```
-
-**Ejes capturados:** accX, accY, accZ, gyrX, gyrY, gyrZ a 100Hz
+┌────────────────────────────┐      Bluetooth LE (BLE)      ┌────────────────────────┐
+│ PALA (Batería externa)     │ ───────────────────────────► │ PC (Python + Bleak)    │
+│                            │    Notificaciones GATT       │                        │
+│ Arduino Nano 33 BLE Sense  │    "0.12,-0.34,1.01,..."     │ Recepción asíncrona    │
+│ Muestreo IMU 100Hz         │ ───────────────────────────► │ Generación de .csv     │
+│ LED verde = grabando       │                              │ Timestamping en Python │
+│ LED azul  = esperando      │                              │                        │
+└────────────────────────────┘                              └────────────────────────┘
+         ▲                                                           │
+    Sin cables                                                       ▼
+  Libertad total                                           golpe_derecha_01.csv
+```
 
 ---
 
@@ -29,57 +30,52 @@ Mientras el jugador realizaba los golpes con total libertad, el firmware de la p
 
 | Archivo | Descripción |
 |---|---|
-| `extraccion_raw.ino` | Firmware Arduino: muestrea IMU y envía CSV por puerto serie |
-| `captura_dataset.py` | Script Python: recibe datos serie y los guarda en CSV |
-| `ping-pong-export (4).zip/` | Carpeta con los CSV capturados con este método |
+| `extraccion_ble.ino` | Firmware Arduino: muestrea IMU y envía datos por BLE |
+| `captura_dataset_ble.py` | Script Python: recibe datos BLE y guarda CSV |
+| `datos_crudos/` | CSVs capturados con este método |
 
 ---
 
-## Uso de los scripts
+## Uso
 
-1. Subir `extraccion_raw.ino` al Arduino Nano 33 BLE Sense
-2. Comprobar en el monitor serie que los datos salen con el formato:
-   ```
-   timestamp,accX,accY,accZ,gyrX,gyrY,gyrZ
-   1250,0.12,-0.34,1.01,2.3,-1.2,0.5
-   1260,0.13,-0.33,1.02,2.4,-1.1,0.4
-   ```
-3. Cerrar el monitor serie de Arduino IDE
-4. Editar `captura_dataset.py` con el puerto COM correcto y el nombre del archivo de salida
-5. Ejecutar el script y realizar el golpe durante los segundos configurados
-6. El CSV generado es compatible con Excel y puede subirse manualmente a Edge Impulse
+1. Subir `extraccion_ble.ino` al Arduino y conectar la batería externa
+2. Esperar a que el **LED se ponga azul** (esperando conexión)
+3. Ajustar en `captura_dataset_ble.py` el nombre del archivo de salida según la clase a grabar (`golpe_derecha_01.csv`, `golpe_reves_01.csv`...)
+4. Ejecutar el script — buscará automáticamente el dispositivo `PingPong_Data`
+5. Cuando el **LED del Arduino se ponga verde**, la conexión está activa y está grabando
+6. Realizar los golpes durante los 60 segundos de grabación
+7. El CSV generado es compatible con Edge Impulse (`Data Acquisition → Upload existing data`)
 
 ---
 
-## ⚙️ Evolución de la Captura del Dataset
+## ⚙️ Retos de ingeniería superados
 
-Aunque este sistema de extracción propio funciona correctamente, durante el desarrollo del proyecto se comprobó que la construcción de un dataset robusto es un proceso iterativo complejo que consume varias horas de pruebas, generación de datos y descarte de muestras erróneas. Por este motivo pragmático, para la captura final se optó por utilizar la conexión directa mediante **Edge Impulse Data Forwarder**, empleando un cable USB lo suficientemente largo para poder mover la pala conectada al ordenador sin ningún problema. La elección se basó en los siguientes criterios de eficiencia:
+Transmitir 6 grados de libertad (acelerómetro + giroscopio en coma flotante) a 100Hz por BLE supuso el mayor reto técnico de esta fase, por las limitaciones de ancho de banda del protocolo.
 
-**1. Feedback Visual Inmediato (Control de Calidad)**
+**Optimización del payload:** Se eliminaron las marcas temporales en el envío del Arduino y se minimizaron los decimales, reduciendo el paquete a menos de 35 bytes para evitar pérdida de paquetes (*packet loss*).
 
-Capturar datos a ciegas en un CSV mediante Python obliga a revisar las gráficas a posteriori para detectar golpes anómalos o mal ejecutados. La herramienta nativa de Edge Impulse permite visualizar la onda en la pantalla del ordenador en tiempo real, lo que fue vital para descartar tomas defectuosas al instante durante las largas sesiones de captura.
+**Reconstrucción temporal (timestamping):** El timestamp no lo genera el Arduino sino el script Python en el momento exacto de recepción asíncrona, manteniendo la fidelidad de la serie temporal necesaria para el bloque Spectral Analysis de Edge Impulse (FFT).
 
-**2. Gestión del Etiquetado (Labeling)**
+**Feedback visual sin cable:** El LED RGB del Arduino indica el estado del sistema sin necesidad de monitor serie: azul = esperando conexión, verde = grabando activamente.
 
-El script de Python requiere modificar el código fuente manualmente para cambiar el nombre del archivo de salida en cada nueva tanda de golpes (por ejemplo, cambiar de `derecha_01.csv` a `reves_01.csv`). Edge Impulse centralizó este flujo, permitiendo grabar ráfagas continuas de movimiento y etiquetar los impactos de forma mucho más ágil directamente en la interfaz web, ahorrando un tiempo valiosísimo.
+---
 
-Por tanto, el código adjunto sirve como prueba de concepto de la extracción raw y permite reproducir la captura de datos de forma autónoma sin depender de plataformas de terceros, pero el dataset final del proyecto fue generado con el método nativo para maximizar la eficiencia en el proceso de filtrado y etiquetado manual.
+## ⚠️ Evolución de la captura del dataset
+
+Aunque este sistema funciona correctamente, durante el desarrollo del proyecto se comprobó que construir un dataset robusto es un proceso iterativo que consume varias horas de pruebas, generación de datos y descarte de muestras erróneas. Por este motivo, para la captura final se optó por utilizar la conexión directa mediante **Edge Impulse Data Forwarder**, empleando un cable USB suficientemente largo para mover la pala con libertad. La elección se basó en los siguientes criterios de eficiencia:
+
+**1. Feedback visual inmediato (control de calidad)**
+Capturar datos por BLE a ciegas obliga a revisar las gráficas a posteriori para detectar golpes anómalos. La herramienta nativa de Edge Impulse permite visualizar la onda en pantalla en tiempo real, lo que fue vital para descartar tomas defectuosas al instante durante las largas sesiones de captura.
+
+**2. Gestión del etiquetado (labeling)**
+El script Python requiere modificar el nombre del archivo de salida manualmente en cada nueva tanda de golpes. Edge Impulse centralizó este flujo, permitiendo grabar ráfagas continuas de movimiento y etiquetar los impactos directamente en la interfaz web, ahorrando un tiempo considerable.
+
+Por tanto, el código adjunto sirve como prueba de concepto de la extracción raw inalámbrica y permite reproducir la captura de datos de forma autónoma sin depender de plataformas de terceros, pero el dataset final del proyecto fue generado con el método nativo para maximizar la eficiencia en el proceso de filtrado y etiquetado.
+
+---
 
 ## Dependencias Python
 
 ```bash
-pip install pyserial
+pip install bleak
 ```
-
----
-
-## Formato del CSV generado
-
-```
-timestamp,accX,accY,accZ,gyrX,gyrY,gyrZ
-1250,0.12,-0.34,1.01,2.30,-1.20,0.50
-1260,0.13,-0.33,1.02,2.40,-1.10,0.40
-...
-```
-
-Compatible con Excel (abrir como CSV con delimitador coma) y con la opción de subida manual de Edge Impulse (`Data Acquisition → Upload existing data`).
